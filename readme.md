@@ -1,38 +1,32 @@
-# PDFs Chatbot using Langchain, GPT 3.5 and Llama 2
-This is a Python gui application that demonstrates how to build a custom PDF chatbot using LangChain and GPT 3.5 / Llama 2. 
+# Private PDFs Chatbot with Image Output using Langchain and Llama 2
 
-
-## How it works (GPT 3.5)
-1. The application gui is built using streamlit
-2. The application reads text from PDF files, splits it into chunks
-3. Uses OpenAI Embedding API to generate embedding vectors used to find the most relevant content to a user's question 
-4. Build a conversational retrieval chain using Langchain
-5. Use OpenAI GPT API to generate respond based on content in PDF
+## How it works
+1. PDFs as Input:
+Upload multiple PDF files as input.
+2. Text Chunk Extraction:
+Content from the PDFs is chunked into 1000 characters smaller chucks with 200 characters overlap.
+3. Embeddings with MiniLM-L6:
+Each text chunk is processed using the MiniLM-L6 model to generate embeddings and stored in Faiss Vector Database.
+4. Image Extraction:
+Images are extracted from the PDFs with corresponding page number and stored in MongoDB.
+5. Question Processing and Matching:
+Upon receiving a user question:
+The question is transformed into an embedding.
+The question's embedding is compared with the vector database to find most similar text chunks.
+6. LLM (Llama2) for Text Answer Generation:
+The top 4 most similar text chunks and conversation history are sent to LLM for answer generation. 
+7. Image Answer Generation:
+The top 2 most similar text chunks are used to find the corresponding images from MongoDB.
 
 
 ## Requirements
 1. Install the following Python packages:
 ```
-pip install streamlit pypdf2 langchain python-dotenv faiss-cpu openai sentence_transformers pymongo
+pip install streamlit pymupdf langchain python-dotenv faiss-cpu sentence_transformers pymongo llama-cpp-python
 ```
 
-2. Create a `.env` file in the root directory of the project and add the following environment variables:
-```
-OPENAI_API_KEY= # Your OpenAI API key
-```
-
-
-## Code Structure
-
-The code is structured as follows:
-
-- `app.py`: The main application file that defines the Streamlit gui app and the user interface.
-    * get_pdf_text function: reads text from PDF files
-    * get_text_chunks function: splits text into chunks
-    * get_vectorstore function: creates a FAISS vectorstore from text chunks and their embeddings
-    * get_conversation_chain function: creates a retrieval chain from vectorstore
-    * handle_userinput function: generates response from OpenAI GPT API
-- `htmlTemplates.py`: A module that defines HTML templates for the user interface.
+2. Download the Llama2-chat-7B 5-bits quantized GGUF model from https://huggingface.co/TheBloke/Llama-2-7b-Chat-GGUF
+Place it in the models folder
 
 
 ## How to run
@@ -40,12 +34,8 @@ The code is structured as follows:
 streamlit run app.py
 ```
 
-
-## Update to use Llama 2 running locally
-1. Install Python bindings for llama.cpp library
-```
-pip install llama-cpp-python
-```
-2. Download the llama 2 7B GGUF model from https://huggingface.co/TheBloke/Llama-2-7b-Chat-GGUF and place it in the models folder
-3. Switch language model to use Llama 2 loaded by LlamaCpp
-4. Switch embedding model to MiniLM-L6-v2 using HuggingFaceEmbeddings
+### Evaluation
+Average 30 seconds per question with inference on CPU
+Average 10 seconds per embedding for 100 pages PDF file
+Max RAM required: 7GB                                
+Disk usage: 4.8GB
